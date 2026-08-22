@@ -1,0 +1,14 @@
+{
+	"name": "4wp-todo",
+	"version": "0.2.0",
+	"private": true,
+	"description": "Build tooling for 4WP ToDo admin (React + REST).",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^27.0.0",
+		"sass": "^1.77.0"
+	}
+}

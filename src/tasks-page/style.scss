@@ -1,0 +1,22 @@
+@import '../admin/style.scss';
+
+.forwp-todo-tasks-root {
+	margin: 0 0 1.5rem;
+}
+
+.forwp-todo-tasks-root--guest,
+.forwp-todo-tasks-root--denied {
+	padding: 12px 16px;
+	border: 1px solid #dadce0;
+	border-radius: 8px;
+	background: #f8f9fa;
+	color: #3c4043;
+}
+
+.forwp-todo-tasks-page {
+	max-width: none;
+}
+
+.forwp-todo-tasks-page .forwp-todo-kanban-wrap {
+	min-height: 420px;
+}

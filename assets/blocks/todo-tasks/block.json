@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "forwp/todo-tasks",
+	"title": "4WP TODO Tasks",
+	"category": "widgets",
+	"description": "Display the full Google Tasks-style kanban for the logged-in user.",
+	"textdomain": "4wp-todo",
+	"icon": "list-view",
+	"keywords": [ "4wp", "todo", "tasks", "kanban", "notes" ],
+	"attributes": {
+		"align": {
+			"type": "string",
+			"default": "wide"
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	}
+}

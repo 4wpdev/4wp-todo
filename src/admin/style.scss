@@ -1,0 +1,604 @@
+.forwp-todo-admin-shell {
+	max-width: 1100px;
+
+	h1.forwp-todo-admin-heading {
+		align-items: center;
+		display: flex;
+		font-size: 1.6rem;
+		font-weight: 600;
+		gap: 10px;
+		margin-bottom: 0.25rem;
+	}
+
+	.forwp-todo-admin-heading__icon {
+		align-items: center;
+		color: var(--wp-admin-theme-color, #3858e9);
+		display: inline-flex;
+		flex-shrink: 0;
+		justify-content: center;
+		line-height: 0;
+	}
+}
+
+.forwp-todo-admin-shell--lists {
+	max-width: none;
+}
+
+.forwp-todo-admin-shell--lists .forwp-todo-admin-app {
+	background: transparent;
+	border: none;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.forwp-todo-admin-shell--lists .forwp-todo-admin-root {
+	margin-top: 0;
+	padding-bottom: 0;
+}
+
+@import '../shared/panel.scss';
+
+.forwp-todo-kanban-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: calc(100vh - 220px);
+}
+
+.forwp-todo-kanban-toolbar {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 16px;
+	padding: 0 2px 4px;
+}
+
+.forwp-todo-kanban-scope {
+	display: inline-flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 3px;
+	border: 1px solid #dadce0;
+	border-radius: 999px;
+	background: #fff;
+}
+
+.forwp-todo-kanban-scope__btn {
+	border: none;
+	border-radius: 999px;
+	background: transparent;
+	color: #3c4043;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.2;
+	padding: 7px 14px;
+}
+
+.forwp-todo-kanban-scope__btn.is-active {
+	background: var(--wp-admin-theme-color, #3858e9);
+	color: #fff;
+}
+
+.forwp-todo-kanban-scope__btn:focus-visible {
+	outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+	outline-offset: 2px;
+}
+
+.forwp-todo-kanban-user-filter select {
+	min-width: 180px;
+	padding: 7px 28px 7px 10px;
+	border: 1px solid #dadce0;
+	border-radius: 6px;
+	background: #fff;
+	color: #1d2327;
+	font-size: 13px;
+	line-height: 1.2;
+}
+
+.forwp-todo-kanban-user-filter select:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.forwp-todo-kanban-board {
+	display: flex;
+	align-items: stretch;
+	gap: 12px;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-x: auto;
+	padding: 4px 2px 20px;
+}
+
+.forwp-todo-kanban-column {
+	display: flex;
+	flex: 0 0 320px;
+	flex-direction: column;
+	max-height: calc(100vh - 200px);
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	box-shadow: 0 1px 2px rgb(0 0 0 / 8%);
+}
+
+.forwp-todo-kanban-column .forwp-todo-panel {
+	min-height: 0;
+	height: 100%;
+}
+
+.forwp-todo-kanban-loading {
+	display: flex;
+	justify-content: center;
+	padding: 48px 0;
+}
+
+.forwp-todo-kanban-loading--boot {
+	min-height: 240px;
+	align-items: center;
+}
+
+.forwp-todo-panel__action--link {
+	text-decoration: none;
+}
+
+.forwp-todo-panel--column {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.forwp-todo-panel__head--column {
+	padding-top: 14px;
+}
+
+.forwp-todo-panel__title-link {
+	color: #1d2327;
+	text-decoration: none;
+}
+
+.forwp-todo-panel__title-link:hover {
+	color: var(--wp-admin-theme-color, #3858e9);
+}
+
+.forwp-todo-panel__completed {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid #e8eaed;
+}
+
+.forwp-todo-panel__completed-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 6px 4px;
+	border: none;
+	background: transparent;
+	color: #5f6368;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	text-align: left;
+}
+
+.forwp-todo-panel__completed-toggle:hover {
+	background: #f1f3f4;
+	border-radius: 4px;
+}
+
+.forwp-todo-panel__completed-chevron {
+	display: inline-block;
+	width: 0;
+	height: 0;
+	border-top: 5px solid transparent;
+	border-bottom: 5px solid transparent;
+	border-left: 6px solid #5f6368;
+	transition: transform 0.15s ease;
+}
+
+.forwp-todo-panel__completed-chevron.is-open {
+	transform: rotate(90deg);
+}
+
+.forwp-todo-admin-lead {
+	color: #646970;
+	font-size: 13px;
+	line-height: 1.5;
+	margin: 0 0 16px;
+	max-width: 72ch;
+}
+
+.forwp-todo-admin-root {
+	margin-top: 1rem;
+	padding-bottom: 2rem;
+}
+
+.forwp-todo-admin-app {
+	background: #fff;
+	border: 1px solid #e0e0e0;
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgb(0 0 0 / 6%);
+	overflow: hidden;
+}
+
+.forwp-todo-tab-panel .components-tab-panel__tabs {
+	align-items: stretch;
+	background: #fafafa;
+	border-bottom: 1px solid #e0e0e0;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	margin: 0;
+	padding: 0;
+
+	button.components-tab-panel__tabs-item {
+		border: 1px solid transparent;
+		border-bottom: none;
+		border-radius: 0;
+		box-shadow: none;
+		font-weight: 500;
+		height: auto;
+		margin: 0 !important;
+		min-height: 0;
+		padding: 10px 14px;
+
+		&.is-active {
+			background: #fff;
+			border-color: #e0e0e0;
+			border-bottom-color: #fff;
+			margin-bottom: -1px !important;
+			position: relative;
+			z-index: 1;
+		}
+	}
+}
+
+.forwp-todo-tab-panel__inner {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	padding: 18px 20px 24px;
+
+	.components-card-body {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+
+		> h3,
+		> p {
+			margin: 0;
+		}
+
+		> .components-base-control {
+			margin: 0;
+		}
+	}
+}
+
+.forwp-todo-server-list {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	margin: 0 0 16px;
+	padding: 16px 18px;
+}
+
+.forwp-todo-server-list__heading {
+	font-size: 1.1rem;
+	margin: 0 0 12px;
+}
+
+.forwp-todo-server-list__table td {
+	vertical-align: top;
+}
+
+.forwp-todo-server-list__hint {
+	margin: 12px 0 0;
+}
+
+.forwp-todo-list-summary {
+	color: #1d2327;
+	font-size: 13px;
+	font-weight: 600;
+	margin: 0;
+}
+
+.forwp-todo-intro-card,
+.forwp-todo-empty-card {
+	border: 1px dashed #c3c4c7;
+	box-shadow: none;
+}
+
+.forwp-todo-fallback {
+	margin-top: 8px;
+}
+
+.forwp-todo-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.forwp-todo-task-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.forwp-todo-task-card__head {
+	align-items: center;
+	display: flex;
+	gap: 8px;
+	justify-content: space-between;
+}
+
+.forwp-todo-task-card__content {
+	margin: 8px 0;
+	white-space: pre-wrap;
+}
+
+.forwp-todo-task-card__meta {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+	gap: 8px 16px;
+	margin: 0 0 10px;
+	padding: 10px 12px;
+	border-radius: 6px;
+	background: #f6f7f7;
+}
+
+.forwp-todo-task-card__meta-item {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.forwp-todo-task-card__meta-label {
+	color: #646970;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.2;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+}
+
+.forwp-todo-task-card__meta-value {
+	color: #1d2327;
+	font-size: 13px;
+	line-height: 1.35;
+	word-break: break-word;
+}
+
+.forwp-todo-task-card__actions {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.forwp-todo-task-card__buttons {
+	align-items: end;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.forwp-todo-admin-muted {
+	color: #646970;
+	font-size: 13px;
+}
+
+.forwp-todo-badge {
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 8px;
+	text-transform: uppercase;
+}
+
+.forwp-todo-badge--open {
+	background: #edf5ff;
+	color: #135e96;
+}
+
+.forwp-todo-badge--closed {
+	background: #edfaef;
+	color: #1e7e34;
+}
+
+.forwp-todo-stats-grid {
+	display: grid;
+	gap: 12px;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	margin-bottom: 16px;
+}
+
+.forwp-todo-stat {
+	font-size: 2rem;
+	font-weight: 600;
+	line-height: 1.2;
+	margin: 0.25rem 0 0;
+}
+
+.forwp-todo-tax-list {
+	margin: 0.5rem 0 0;
+	padding-left: 1.25rem;
+}
+
+.forwp-todo-tax-list li {
+	margin-bottom: 0.35rem;
+}
+
+.forwp-todo-tax-tree-card {
+	margin-bottom: 0;
+}
+
+.forwp-todo-tax-tree__root h2 {
+	font-size: 1.25rem;
+	margin: 0 0 0.35rem;
+}
+
+.forwp-todo-tax-tree__dimensions {
+	border-left: 2px solid #e0e0e0;
+	list-style: none;
+	margin: 1rem 0 0;
+	padding: 0 0 0 1rem;
+}
+
+.forwp-todo-tax-tree__dimension {
+	margin-bottom: 1.25rem;
+	padding-left: 0.75rem;
+	position: relative;
+
+	&::before {
+		background: var( --wp-admin-theme-color, #3858e9 );
+		border-radius: 50%;
+		content: '';
+		height: 8px;
+		left: -5px;
+		position: absolute;
+		top: 0.45rem;
+		width: 8px;
+	}
+}
+
+.forwp-todo-tax-tree__dimension-head {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.forwp-todo-tax-tree__badge {
+	background: #edf5ff;
+	border-radius: 4px;
+	color: #135e96;
+	font-size: 11px;
+	font-weight: 600;
+	padding: 2px 8px;
+	text-transform: uppercase;
+}
+
+.forwp-todo-tax-tree__terms {
+	list-style: none;
+	margin: 0.5rem 0 0;
+	padding-left: 1rem;
+}
+
+.forwp-todo-tax-tree__terms li {
+	margin-bottom: 0.35rem;
+}
+
+.forwp-todo-tax-tree__term-label {
+	margin-left: 0.35rem;
+}
+
+.forwp-todo-tax-tree__group {
+	margin-top: 0.75rem;
+}
+
+.forwp-todo-tax-tree__group-label {
+	color: #646970;
+	display: block;
+	font-size: 12px;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+	text-transform: uppercase;
+}
+
+.forwp-todo-toolbar {
+	align-items: flex-start;
+	border-top: 1px solid #f0f0f1;
+	column-gap: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	margin-top: 8px;
+	padding-top: 16px;
+	row-gap: 12px;
+}
+
+.forwp-todo-toolbar__primary {
+	align-items: center;
+	display: inline-flex;
+	flex-shrink: 0;
+	flex-wrap: nowrap;
+	gap: 8px;
+
+	.components-button {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+}
+
+.forwp-todo-toolbar__secondary {
+	align-items: center;
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	gap: 10px;
+	min-width: 140px;
+}
+
+.forwp-todo-toolbar__hint {
+	color: #646970;
+	flex: 1;
+	font-size: 12px;
+	line-height: 1.45;
+	margin: 0;
+	max-width: 320px;
+	min-width: 160px;
+}
+
+.forwp-todo-btn-dashicon.components-button {
+	align-items: center;
+	display: inline-flex;
+	gap: 6px;
+
+	.dashicons {
+		display: inline-block;
+		font-size: 18px;
+		height: 18px;
+		line-height: 1;
+		margin-inline-start: -2px;
+		width: 18px;
+	}
+}
+
+.forwp-todo-access-rule {
+	margin-top: 0;
+}
+
+.forwp-todo-access-rule__head {
+	align-items: center;
+	display: flex;
+	gap: 12px;
+	justify-content: space-between;
+	margin-bottom: 8px;
+}
+
+.forwp-todo-access-rule__users {
+	display: grid;
+	gap: 4px 16px;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+	margin-top: 8px;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-radius: 6px;
+}
+
+.forwp-todo-access-add {
+	align-items: flex-end;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 16px;
+}
+
+.forwp-todo-api-snippet {
+	background: #f6f7f7;
+	border-radius: 6px;
+	font-size: 12px;
+	margin: 0.5rem 0 0;
+	overflow-x: auto;
+	padding: 10px 12px;
+}

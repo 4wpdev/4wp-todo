@@ -1,0 +1,87 @@
+@import '../../admin/style.scss';
+
+.forwp-todo-tasks-block-editor {
+	box-sizing: border-box;
+	margin: 0;
+	max-width: none;
+	width: 100%;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.forwp-todo-tasks-block-editor *,
+.forwp-todo-tasks-block-editor *::before,
+.forwp-todo-tasks-block-editor *::after {
+	box-sizing: border-box;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-tasks-root {
+	margin: 0;
+	width: 100%;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-tasks-page {
+	max-width: none;
+	width: 100%;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-wrap {
+	min-height: 420px;
+	height: auto;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-board {
+	display: flex;
+	align-items: stretch;
+	min-height: 360px;
+	overflow-x: auto;
+	overflow-y: visible;
+	padding-bottom: 12px;
+	-webkit-overflow-scrolling: touch;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-column {
+	flex: 0 0 280px;
+	max-height: 520px;
+	min-height: 320px;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-column .forwp-todo-panel {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-panel__scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: auto;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-panel__list,
+.forwp-todo-tasks-block-editor .forwp-todo-panel__item {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-panel__action,
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-scope__btn,
+.forwp-todo-tasks-block-editor .forwp-todo-panel__icon-btn {
+	font-family: inherit;
+}
+
+.forwp-todo-tasks-block-editor .forwp-todo-kanban-user-filter select,
+.forwp-todo-tasks-block-editor .forwp-todo-panel__post-picker-select {
+	max-width: 100%;
+}
+
+.block-editor-block-list__block .forwp-todo-tasks-block-editor,
+.editor-styles-wrapper .forwp-todo-tasks-block-editor {
+	overflow: visible;
+}
+
+.alignwide .forwp-todo-tasks-block-editor,
+.alignfull .forwp-todo-tasks-block-editor {
+	width: 100%;
+}

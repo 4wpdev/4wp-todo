@@ -1,0 +1,32 @@
+{
+	"name": "4wp-dev/4wp-todo",
+	"description": "4WP Todo — team tasks and checklists for the 4WP ecosystem.",
+	"type": "wordpress-plugin",
+	"license": "GPL-2.0-or-later",
+	"require": {
+		"php": ">=7.4"
+	},
+	"require-dev": {
+		"4wpdev/4wp-dev-toolkit": "@dev"
+	},
+	"repositories": [
+		{
+			"type": "path",
+			"url": "../4wp-dev-toolkit",
+			"options": {
+				"symlink": true
+			}
+		}
+	],
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"sort-packages": true
+	},
+	"scripts": {
+		"lint": "phpcs",
+		"lint:fix": "phpcbf",
+		"test": "phpunit"
+	}
+}
