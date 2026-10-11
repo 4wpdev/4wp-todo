@@ -48,11 +48,12 @@ class Task_TaxonomyTest extends TestCase {
 					return false;
 				}
 
-				return (object) array(
-					'term_id' => 1,
-					'slug'    => $value,
-					'name'    => $known[ $taxonomy ][ $value ],
-				);
+				$term          = new \WP_Term();
+				$term->term_id = 1;
+				$term->slug    = $value;
+				$term->name    = $known[ $taxonomy ][ $value ];
+
+				return $term;
 			}
 		);
 

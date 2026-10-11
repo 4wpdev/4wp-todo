@@ -84,10 +84,12 @@ final class Task_Taxonomies {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- core taxonomy form nonce.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Core taxonomy admin; phase sanitized via sanitize_phase().
 		if ( isset( $_POST['forwp_todo_workflow_phase'] ) ) {
-			$phase = self::sanitize_phase( wp_unslash( $_POST['forwp_todo_workflow_phase'] ) );
+			$raw_phase = wp_unslash( $_POST['forwp_todo_workflow_phase'] );
+			$phase     = self::sanitize_phase( is_string( $raw_phase ) ? $raw_phase : '' );
 			update_term_meta( $term_id, self::WORKFLOW_PHASE_META, $phase );
+			// phpcs:enable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			return;
 		}
 
@@ -102,17 +104,17 @@ final class Task_Taxonomies {
 	public static function render_workflow_phase_field(): void {
 		?>
 		<div class="form-field forwp-todo-workflow-phase-wrap">
-			<label for="forwp-todo-workflow-phase"><? esc_html_e( 'Note phase', '4wp-todo' ); ?></label>
+			<label for="forwp-todo-workflow-phase"><?php esc_html_e( 'Note phase', '4wp-todo' ); ?></label>
 			<select name="forwp_todo_workflow_phase" id="forwp-todo-workflow-phase">
 				<option value="<?php echo esc_attr( self::PHASE_OPEN ); ?>">
-					<? esc_html_e( 'While note is open', '4wp-todo' ); ?>
+					<?php esc_html_e( 'While note is open', '4wp-todo' ); ?>
 				</option>
 				<option value="<?php echo esc_attr( self::PHASE_CLOSED ); ?>">
-					<? esc_html_e( 'When note is closed', '4wp-todo' ); ?>
+					<?php esc_html_e( 'When note is closed', '4wp-todo' ); ?>
 				</option>
 			</select>
 			<p class="description">
-				<? esc_html_e( 'Workflow lifts apply only while the core Gutenberg note matches this phase.', '4wp-todo' ); ?>
+				<?php esc_html_e( 'Workflow lifts apply only while the core Gutenberg note matches this phase.', '4wp-todo' ); ?>
 			</p>
 		</div>
 		<?php
@@ -131,19 +133,19 @@ final class Task_Taxonomies {
 		?>
 		<tr class="form-field forwp-todo-workflow-phase-wrap">
 			<th scope="row">
-				<label for="forwp-todo-workflow-phase"><? esc_html_e( 'Note phase', '4wp-todo' ); ?></label>
+				<label for="forwp-todo-workflow-phase"><?php esc_html_e( 'Note phase', '4wp-todo' ); ?></label>
 			</th>
 			<td>
 				<select name="forwp_todo_workflow_phase" id="forwp-todo-workflow-phase">
-					<option value="<?php echo esc_attr( self::PHASE_OPEN ); ?>" <? selected( self::PHASE_OPEN, $phase ); ?>>
-						<? esc_html_e( 'While note is open', '4wp-todo' ); ?>
+					<option value="<?php echo esc_attr( self::PHASE_OPEN ); ?>" <?php selected( self::PHASE_OPEN, $phase ); ?>>
+						<?php esc_html_e( 'While note is open', '4wp-todo' ); ?>
 					</option>
-					<option value="<?php echo esc_attr( self::PHASE_CLOSED ); ?>" <? selected( self::PHASE_CLOSED, $phase ); ?>>
-						<? esc_html_e( 'When note is closed', '4wp-todo' ); ?>
+					<option value="<?php echo esc_attr( self::PHASE_CLOSED ); ?>" <?php selected( self::PHASE_CLOSED, $phase ); ?>>
+						<?php esc_html_e( 'When note is closed', '4wp-todo' ); ?>
 					</option>
 				</select>
 				<p class="description">
-					<? esc_html_e( 'Workflow lifts apply only while the core Gutenberg note matches this phase.', '4wp-todo' ); ?>
+					<?php esc_html_e( 'Workflow lifts apply only while the core Gutenberg note matches this phase.', '4wp-todo' ); ?>
 				</p>
 			</td>
 		</tr>

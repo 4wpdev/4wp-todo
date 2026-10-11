@@ -31,23 +31,8 @@ final class Menu {
 	 */
 	public static function register(): void {
 		add_action( 'admin_menu', array( __CLASS__, 'register_menu' ) );
-		add_action( 'admin_init', array( __CLASS__, 'prepare_app_screen' ), 1 );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 		add_filter( 'parent_file', array( __CLASS__, 'highlight_taxonomy_parent_menu' ) );
-	}
-
-	/**
-	 * Dedicated app screens: hide unrelated plugin admin notices.
-	 *
-	 * @return void
-	 */
-	public static function prepare_app_screen(): void {
-		if ( ! self::is_plugin_page_request() ) {
-			return;
-		}
-
-		remove_all_actions( 'admin_notices' );
-		remove_all_actions( 'all_admin_notices' );
 	}
 
 	/**
@@ -145,7 +130,7 @@ final class Menu {
 				printf(
 					/* translators: %d: note count */
 					esc_html__( 'Checklist of native Gutenberg notes (comment_type = note). %d item(s) on this site.', '4wp-todo' ),
-					$count
+					absint( $count )
 				);
 				?>
 			</p>

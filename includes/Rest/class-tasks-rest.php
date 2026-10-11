@@ -46,11 +46,13 @@ final class Tasks_Rest {
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( __CLASS__, 'list_tasks' ),
 					'permission_callback' => array( __CLASS__, 'can_manage_tasks' ),
+					'args'                => self::list_tasks_args(),
 				),
 				array(
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( __CLASS__, 'create_task' ),
-					'permission_callback' => array( __CLASS__, 'can_manage_tasks' ),
+					'permission_callback' => array( __CLASS__, 'can_create_task' ),
+					'args'                => self::create_task_args(),
 				),
 			)
 		);
@@ -101,12 +103,15 @@ final class Tasks_Rest {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( __CLASS__, 'update_task' ),
 					'permission_callback' => array( __CLASS__, 'can_manage_tasks' ),
-					'args'                => array(
-						'id' => array(
-							'type'              => 'integer',
-							'required'          => true,
-							'sanitize_callback' => 'absint',
+					'args'                => array_merge(
+						array(
+							'id' => array(
+								'type'              => 'integer',
+								'required'          => true,
+								'sanitize_callback' => 'absint',
+							),
 						),
+						self::update_task_args()
 					),
 				),
 				array(
@@ -151,12 +156,15 @@ final class Tasks_Rest {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( __CLASS__, 'create_reply' ),
 					'permission_callback' => array( __CLASS__, 'can_manage_tasks' ),
-					'args'                => array(
-						'id' => array(
-							'type'              => 'integer',
-							'required'          => true,
-							'sanitize_callback' => 'absint',
+					'args'                => array_merge(
+						array(
+							'id' => array(
+								'type'              => 'integer',
+								'required'          => true,
+								'sanitize_callback' => 'absint',
+							),
 						),
+						self::create_reply_args()
 					),
 				),
 			)
@@ -199,6 +207,7 @@ final class Tasks_Rest {
 					'methods'             => WP_REST_Server::EDITABLE,
 					'callback'            => array( __CLASS__, 'update_settings' ),
 					'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+					'args'                => self::update_settings_args(),
 				),
 			)
 		);
@@ -210,7 +219,7 @@ final class Tasks_Rest {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( __CLASS__, 'get_integration' ),
-					'permission_callback' => '__return_true',
+					'permission_callback' => array( __CLASS__, 'can_manage_tasks' ),
 				),
 			)
 		);
@@ -304,6 +313,32 @@ final class Tasks_Rest {
 	}
 
 	/**
+	 * POST /tasks — TODO access plus edit_post (or storage post) for the target post ID.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return bool
+	 */
+	public static function can_create_task( WP_REST_Request $request ): bool {
+		if ( ! self::can_manage_tasks() ) {
+			return false;
+		}
+
+		$post_id = Task_Repository::resolve_attachment_post_id(
+			array(
+				'post_id'         => $request->get_param( 'post_id' ),
+				'context_url'     => $request->get_param( 'context_url' ),
+				'storage_post_id' => $request->get_param( 'storage_post_id' ),
+			)
+		);
+
+		if ( $post_id <= 0 ) {
+			return true;
+		}
+
+		return Task_Repository::user_can_attach_task_to_post( $post_id );
+	}
+
+	/**
 	 * @return bool
 	 */
 	public static function can_manage_settings(): bool {
@@ -375,7 +410,7 @@ final class Tasks_Rest {
 	 * @return WP_REST_Response
 	 */
 	public static function get_stats(): WP_REST_Response {
-		$query = array(
+		$query        = array(
 			'note_state' => 'open',
 			'number'     => 500,
 		);
@@ -403,38 +438,31 @@ final class Tasks_Rest {
 	}
 
 	/**
+	 * Return catalog data for Lists and overlay pickers.
+	 *
+	 * The permission_callback remains TODO access so the UI can load. Users who cannot
+	 * view all tasks receive only people and posts from notes they can already see,
+	 * not a site-wide user or notes-post dump.
+	 *
 	 * @return WP_REST_Response
 	 */
 	public static function get_meta(): WP_REST_Response {
-		$users = get_users(
-			array(
-				'fields'  => array( 'ID', 'display_name' ),
-				'orderby' => 'display_name',
-			)
-		);
-
-		$user_items = array();
-		foreach ( $users as $user ) {
-			$user_items[] = array(
-				'id'   => (int) $user->ID,
-				'name' => (string) $user->display_name,
-			);
-		}
+		$posts = Task_Repository::get_posts_with_notes();
 
 		return new WP_REST_Response(
 			array(
-				'taxonomy'         => Task_Taxonomy::registry(
+				'taxonomy'           => Task_Taxonomy::registry(
 					array(
-						'posts' => Task_Repository::get_posts_with_notes(),
+						'posts' => $posts,
 					)
 				),
-				'categories'       => Task_Category::choices(),
-				'open_workflows'   => Task_Workflow::choices( true ),
-				'closed_workflows' => Task_Workflow::choices( false ),
-				'users'            => $user_items,
-				'posts'            => Task_Repository::get_posts_with_notes(),
-				'assignable_posts' => Task_Repository::get_assignable_posts(),
-				'current_user'     => array(
+				'categories'         => Task_Category::choices(),
+				'open_workflows'     => Task_Workflow::choices( true ),
+				'closed_workflows'   => Task_Workflow::choices( false ),
+				'users'              => Task_Repository::get_meta_users(),
+				'posts'              => $posts,
+				'assignable_posts'   => Task_Repository::get_assignable_posts(),
+				'current_user'       => array(
 					'id'   => get_current_user_id(),
 					'name' => wp_get_current_user()->display_name,
 				),
@@ -455,7 +483,16 @@ final class Tasks_Rest {
 		);
 
 		if ( ! empty( $request['post_id'] ) ) {
-			$query['post_id'] = absint( $request->get_param( 'post_id' ) );
+			$post_id = absint( $request->get_param( 'post_id' ) );
+			if ( $post_id > 0 && ! Task_Repository::user_can_attach_task_to_post( $post_id ) && ! Settings::user_can_view_all_tasks() ) {
+				return new WP_REST_Response(
+					array(
+						'message' => __( 'You cannot list tasks for that post.', '4wp-todo' ),
+					),
+					403
+				);
+			}
+			$query['post_id'] = $post_id;
 		}
 
 		$category = $request->get_param( 'category' );
@@ -495,7 +532,7 @@ final class Tasks_Rest {
 			$comments = Task_Repository::query_visible_to_user( get_current_user_id(), $query );
 		}
 
-		$items    = array_map(
+		$items = array_map(
 			static function ( $comment ) {
 				return Task_Repository::get_task_data( (int) $comment->comment_ID );
 			},
@@ -607,20 +644,37 @@ final class Tasks_Rest {
 	 * @return WP_REST_Response
 	 */
 	public static function create_task( WP_REST_Request $request ): WP_REST_Response {
+		$post_id = Task_Repository::resolve_attachment_post_id(
+			array(
+				'post_id'         => $request->get_param( 'post_id' ),
+				'context_url'     => $request->get_param( 'context_url' ),
+				'storage_post_id' => $request->get_param( 'storage_post_id' ),
+			)
+		);
+
+		if ( $post_id > 0 && ! Task_Repository::user_can_attach_task_to_post( $post_id ) ) {
+			return new WP_REST_Response(
+				array(
+					'message' => __( 'You cannot create a task on that post.', '4wp-todo' ),
+				),
+				403
+			);
+		}
+
 		$task_id = forwp_todo_create_task(
 			array(
-				'content'     => (string) $request->get_param( 'content' ),
-				'category'    => (string) $request->get_param( 'category' ),
-				'assignee'    => absint( $request->get_param( 'assignee' ) ),
-				'post_id'     => absint( $request->get_param( 'post_id' ) ),
-				'context_url' => (string) $request->get_param( 'context_url' ),
+				'content'      => (string) $request->get_param( 'content' ),
+				'category'     => (string) $request->get_param( 'category' ),
+				'assignee'     => absint( $request->get_param( 'assignee' ) ),
+				'post_id'      => absint( $request->get_param( 'post_id' ) ),
+				'context_url'  => (string) $request->get_param( 'context_url' ),
 				'admin_screen' => (string) $request->get_param( 'admin_screen' ),
-				'selector'    => (string) $request->get_param( 'selector' ),
-				'anchor'      => (string) $request->get_param( 'anchor' ),
-				'due_date'    => (string) $request->get_param( 'due_date' ),
-				'viewport'    => (string) $request->get_param( 'viewport' ),
-				'source'      => (string) $request->get_param( 'source' ),
-				'workflow'    => (string) $request->get_param( 'workflow' ),
+				'selector'     => (string) $request->get_param( 'selector' ),
+				'anchor'       => (string) $request->get_param( 'anchor' ),
+				'due_date'     => (string) $request->get_param( 'due_date' ),
+				'viewport'     => (string) $request->get_param( 'viewport' ),
+				'source'       => (string) $request->get_param( 'source' ),
+				'workflow'     => (string) $request->get_param( 'workflow' ),
 			)
 		);
 
@@ -830,5 +884,163 @@ final class Tasks_Rest {
 			),
 			201
 		);
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function list_tasks_args(): array {
+		return array(
+			'per_page'   => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'post_id'    => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'category'   => array(
+				'type'              => 'string',
+				'sanitize_callback' => array( Task_Category::class, 'sanitize' ),
+			),
+			'note_state' => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+			),
+			'workflow'   => array(
+				'type'              => 'string',
+				'sanitize_callback' => array( Task_Taxonomy::class, 'sanitize_workflow' ),
+			),
+			'view'       => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+			),
+			'assignee'   => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function create_task_args(): array {
+		return array(
+			'content'      => array(
+				'type'              => 'string',
+				'required'          => true,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_task_content' ),
+			),
+			'category'     => array(
+				'type'              => 'string',
+				'sanitize_callback' => array( Task_Category::class, 'sanitize' ),
+			),
+			'assignee'     => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'post_id'      => array(
+				'type'              => 'integer',
+				'sanitize_callback' => 'absint',
+			),
+			'context_url'  => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'esc_url_raw',
+			),
+			'admin_screen' => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'selector'     => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'anchor'       => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'due_date'     => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'viewport'     => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+			),
+			'source'       => array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_key',
+			),
+			'workflow'     => array(
+				'type'              => 'string',
+				'sanitize_callback' => array( Task_Taxonomy::class, 'sanitize_workflow' ),
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function update_task_args(): array {
+		$args = self::create_task_args();
+		unset( $args['content']['required'] );
+
+		$args['note_status'] = array(
+			'type'              => 'string',
+			'sanitize_callback' => 'sanitize_key',
+		);
+
+		return $args;
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function create_reply_args(): array {
+		return array(
+			'content' => array(
+				'type'              => 'string',
+				'required'          => true,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_task_content' ),
+			),
+		);
+	}
+
+	/**
+	 * @return array<string, array<string, mixed>>
+	 */
+	private static function update_settings_args(): array {
+		return array(
+			'frontend_enabled'     => array(
+				'type' => 'boolean',
+			),
+			'hide_admin_bar'       => array(
+				'type' => 'boolean',
+			),
+			'show_admin_bar_todo'  => array(
+				'type' => 'boolean',
+			),
+			'visibility_rules'     => array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_visibility_rules' ),
+			),
+			'super_admin_user_ids' => array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_super_admin_user_ids' ),
+			),
+			'tasks_page_id'        => array(
+				'type'              => 'integer',
+				'sanitize_callback' => array( Settings::class, 'sanitize_tasks_page_id' ),
+			),
+		);
+	}
+
+	/**
+	 * @param mixed $value Raw content.
+	 * @return string
+	 */
+	public static function sanitize_task_content( $value ): string {
+		return sanitize_textarea_field( (string) $value );
 	}
 }

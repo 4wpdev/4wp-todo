@@ -167,10 +167,11 @@ final class Overlay {
 			return (int) $post->ID;
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- admin screen routing only.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin post ID from URL.
 		if ( isset( $_GET['post'] ) ) {
 			return absint( wp_unslash( $_GET['post'] ) );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return 0;
 	}
@@ -185,8 +186,10 @@ final class Overlay {
 			return '';
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing context.
-		$request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
+		$request_uri = isset( $_SERVER['REQUEST_URI'] )
+			? sanitize_text_field( wp_unslash( (string) $_SERVER['REQUEST_URI'] ) )
+			: '';
 		if ( ! is_string( $request_uri ) || '' === $request_uri ) {
 			return '';
 		}
@@ -227,19 +230,18 @@ final class Overlay {
 
 		global $pagenow;
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing context.
+		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Read-only admin screen routing.
 		if ( isset( $_GET['page'] ) ) {
-			return 'page-' . sanitize_key( wp_unslash( $_GET['page'] ) );
+			return 'page-' . sanitize_key( wp_unslash( (string) $_GET['page'] ) );
 		}
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing context.
 		if ( isset( $_GET['post'] ) ) {
 			$post_id = absint( wp_unslash( $_GET['post'] ) );
-			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only routing context.
-			$action = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( $_GET['action'] ) ) : 'edit';
+			$action  = isset( $_GET['action'] ) ? sanitize_key( wp_unslash( (string) $_GET['action'] ) ) : 'edit';
 
 			return 'post-' . $post_id . '-' . $action;
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Recommended
 
 		return sanitize_key( (string) $pagenow );
 	}
@@ -443,6 +445,7 @@ final class Overlay {
 			'closedLabel'   => __( 'closed', '4wp-todo' ),
 			'jumpTo'        => __( 'Jump to section', '4wp-todo' ),
 			'clickOpenList' => __( 'Click to open list', '4wp-todo' ),
+			/* translators: %d: number of notes in a section */
 			'notesCount'    => __( '%d notes', '4wp-todo' ),
 			'markDone'      => __( 'Mark as done', '4wp-todo' ),
 			'markOpen'      => __( 'Mark as open', '4wp-todo' ),

@@ -20,3 +20,13 @@ vendor/
 
 coverage/
 node_modules/
+
+package.json
+package-lock.json
+webpack.config.js
+src/
+
+README.md
+docs/
+
+.wordpress-org/

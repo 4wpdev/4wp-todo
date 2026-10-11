@@ -1,6 +1,6 @@
 <?php
 /**
- * Registers 4WP ToDo comment meta on native notes.
+ * Comment meta for task notes — managed via forwp-todo/v1 REST only.
  *
  * @package ForWP\Todo
  */
@@ -44,7 +44,7 @@ final class Task_Comment_Meta {
 					'type'              => 'string',
 					'single'            => true,
 					'default'           => $default,
-					'show_in_rest'      => true,
+					'show_in_rest'      => false,
 					'auth_callback'     => array( __CLASS__, 'can_edit_note_meta' ),
 					'sanitize_callback' => static function ( $value ) use ( $key ) {
 						if ( Task_Workflow::META_KEY === $key ) {
@@ -63,19 +63,37 @@ final class Task_Comment_Meta {
 			'comment',
 			Task_Repository::META_ASSIGNEE,
 			array(
-				'type'           => 'integer',
-				'single'         => true,
-				'default'        => 0,
-				'show_in_rest'   => true,
-				'auth_callback'  => array( __CLASS__, 'can_edit_note_meta' ),
+				'type'          => 'integer',
+				'single'        => true,
+				'default'       => 0,
+				'show_in_rest'  => false,
+				'auth_callback' => array( __CLASS__, 'can_edit_note_meta' ),
 			)
 		);
 	}
 
 	/**
+	 * @param bool   $allowed   Whether the user can add the meta.
+	 * @param string $meta_key  Meta key.
+	 * @param int    $object_id Comment ID.
+	 * @param int    $user_id   User ID.
+	 * @param string $cap       Capability.
+	 * @param array  $caps      Capabilities.
 	 * @return bool
 	 */
-	public static function can_edit_note_meta(): bool {
-		return Settings::user_can_access_todo();
+	public static function can_edit_note_meta( $allowed, $meta_key, $object_id, $user_id, $cap, $caps ): bool {
+		unset( $allowed, $meta_key, $cap, $caps );
+
+		$user_id = absint( $user_id );
+		if ( $user_id <= 0 || ! Settings::user_can_access_todo( $user_id ) ) {
+			return false;
+		}
+
+		$comment_id = absint( $object_id );
+		if ( $comment_id <= 0 ) {
+			return false;
+		}
+
+		return Task_Repository::user_can_view_task( $comment_id, $user_id );
 	}
 }

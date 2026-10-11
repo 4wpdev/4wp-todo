@@ -39,16 +39,7 @@ final class Task_Repository {
 			return 0;
 		}
 
-		$post_id = isset( $args['post_id'] ) ? absint( $args['post_id'] ) : 0;
-		if ( $post_id <= 0 && ! empty( $args['context_url'] ) ) {
-			$post_id = (int) url_to_postid( (string) $args['context_url'] );
-		}
-		if ( $post_id <= 0 && ! empty( $args['storage_post_id'] ) ) {
-			$post_id = absint( $args['storage_post_id'] );
-		}
-		if ( $post_id <= 0 && ! empty( $args['context_url'] ) && self::is_admin_context_url( (string) $args['context_url'] ) ) {
-			$post_id = Settings::get_note_storage_post_id();
-		}
+		$post_id = self::resolve_attachment_post_id( $args );
 		if ( $post_id <= 0 ) {
 			return 0;
 		}
@@ -56,6 +47,10 @@ final class Task_Repository {
 		$user_id = get_current_user_id();
 		if ( $user_id <= 0 && ! empty( $args['author'] ) ) {
 			$user_id = absint( $args['author'] );
+		}
+
+		if ( $user_id > 0 && ! self::user_can_attach_task_to_post( $post_id, $user_id ) ) {
+			return 0;
 		}
 
 		$comment_id = wp_insert_comment(
@@ -421,11 +416,168 @@ final class Task_Repository {
 	}
 
 	/**
+	 * Resolve which post a new note should attach to (create / REST permission checks).
+	 *
+	 * @param array<string, mixed> $args Creation args.
+	 * @return int Post ID or 0.
+	 */
+	public static function resolve_attachment_post_id( array $args ): int {
+		$post_id = isset( $args['post_id'] ) ? absint( $args['post_id'] ) : 0;
+		if ( $post_id <= 0 && ! empty( $args['context_url'] ) ) {
+			$post_id = (int) url_to_postid( (string) $args['context_url'] );
+		}
+		if ( $post_id <= 0 && ! empty( $args['storage_post_id'] ) ) {
+			$post_id = absint( $args['storage_post_id'] );
+		}
+		if ( $post_id <= 0 && ! empty( $args['context_url'] ) && self::is_admin_context_url( (string) $args['context_url'] ) ) {
+			$post_id = Settings::get_note_storage_post_id();
+		}
+
+		return max( 0, $post_id );
+	}
+
+	/**
+	 * Whether a user may attach a new task note to a post (REST create + repository guard).
+	 *
+	 * @param int $post_id Post ID.
+	 * @param int $user_id User ID (0 = current user).
+	 * @return bool
+	 */
+	public static function user_can_attach_task_to_post( int $post_id, int $user_id = 0 ): bool {
+		$user_id = $user_id > 0 ? $user_id : get_current_user_id();
+		if ( $post_id <= 0 || $user_id <= 0 ) {
+			return false;
+		}
+
+		$post = get_post( $post_id );
+		if ( ! $post instanceof \WP_Post ) {
+			return false;
+		}
+
+		$storage_id = Settings::get_note_storage_post_id();
+		if ( $storage_id > 0 && $post_id === $storage_id ) {
+			return Settings::user_can_access_todo( $user_id );
+		}
+
+		$allowed = user_can( $user_id, 'edit_post', $post_id );
+
+		/**
+		 * Filter whether a user may attach a new todo note to a post.
+		 *
+		 * @param bool $allowed   Default from edit_post capability.
+		 * @param int  $post_id   Target post ID.
+		 * @param int  $user_id   User attempting to create the note.
+		 */
+		return (bool) apply_filters( 'forwp_todo_user_can_attach_to_post', $allowed, $post_id, $user_id );
+	}
+
+	/**
+	 * User IDs that appear on notes (author + assignee), plus the viewer.
+	 *
+	 * @param \WP_Comment[] $comments Root notes.
+	 * @param int           $viewer_id Current viewer.
+	 * @return list<int>
+	 */
+	public static function collect_user_ids_from_notes( array $comments, int $viewer_id ): array {
+		$ids = array();
+		if ( $viewer_id > 0 ) {
+			$ids[ $viewer_id ] = $viewer_id;
+		}
+
+		foreach ( $comments as $comment ) {
+			if ( ! is_object( $comment ) || ! isset( $comment->comment_ID ) ) {
+				continue;
+			}
+
+			$author_id = isset( $comment->user_id ) ? (int) $comment->user_id : 0;
+			if ( $author_id > 0 ) {
+				$ids[ $author_id ] = $author_id;
+			}
+
+			$assignee_id = (int) get_comment_meta( (int) $comment->comment_ID, self::META_ASSIGNEE, true );
+			if ( $assignee_id > 0 ) {
+				$ids[ $assignee_id ] = $assignee_id;
+			}
+		}
+
+		return array_values( $ids );
+	}
+
+	/**
+	 * Assignee/filter catalog for GET /meta.
+	 *
+	 * Users who cannot view all tasks only see themselves plus people on notes they can already see.
+	 *
+	 * @param int $user_id Viewer (0 = current user).
+	 * @return list<array{id: int, name: string}>
+	 */
+	public static function get_meta_users( int $user_id = 0 ): array {
+		$user_id = $user_id > 0 ? $user_id : get_current_user_id();
+		if ( $user_id <= 0 ) {
+			return array();
+		}
+
+		if ( Settings::user_can_view_all_tasks( $user_id ) ) {
+			$users = get_users(
+				array(
+					'fields'  => array( 'ID', 'display_name' ),
+					'orderby' => 'display_name',
+				)
+			);
+
+			$items = array();
+			foreach ( $users as $user ) {
+				$items[] = array(
+					'id'   => (int) $user->ID,
+					'name' => (string) $user->display_name,
+				);
+			}
+
+			return $items;
+		}
+
+		$comments = self::query_visible_to_user(
+			$user_id,
+			array(
+				'number' => 500,
+			)
+		);
+
+		$items = array();
+		foreach ( self::collect_user_ids_from_notes( $comments, $user_id ) as $id ) {
+			$user = get_userdata( $id );
+			if ( ! $user ) {
+				continue;
+			}
+
+			$items[] = array(
+				'id'   => (int) $user->ID,
+				'name' => (string) $user->display_name,
+			);
+		}
+
+		usort(
+			$items,
+			static function ( $left, $right ) {
+				return strcasecmp( (string) $left['name'], (string) $right['name'] );
+			}
+		);
+
+		return $items;
+	}
+
+	/**
 	 * Posts that have at least one root note (for admin filters).
 	 *
+	 * Users who cannot view all tasks only see posts from notes they can view.
+	 *
+	 * @param int $user_id Viewer (0 = current user).
 	 * @return array<int, array{id: int, title: string, edit_url: string, view_url: string}>
 	 */
-	public static function get_posts_with_notes(): array {
+	public static function get_posts_with_notes( int $user_id = 0 ): array {
+		$user_id  = $user_id > 0 ? $user_id : get_current_user_id();
+		$restrict = $user_id > 0 && ! Settings::user_can_view_all_tasks( $user_id );
+
 		$comments = get_comments(
 			array(
 				'type'   => 'note',
@@ -437,6 +589,10 @@ final class Task_Repository {
 
 		$posts = array();
 		foreach ( $comments as $comment ) {
+			if ( $restrict && ! self::user_can_view_task( (int) $comment->comment_ID, $user_id ) ) {
+				continue;
+			}
+
 			$post_id = (int) $comment->comment_post_ID;
 			if ( isset( $posts[ $post_id ] ) ) {
 				continue;

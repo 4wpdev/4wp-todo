@@ -25,10 +25,10 @@ class Integration_ApiTest extends TestCase {
 		Monkey\setUp();
 		Functions\when( '__' )->returnArg( 1 );
 		Functions\when( 'rest_url' )->returnArg( 1 );
-		Functions\when( 'apply_filters' )->returnArg( 1 );
+		Functions\when( 'apply_filters' )->returnArg( 2 );
 
 		if ( ! defined( 'FORWP_TODO_VERSION' ) ) {
-			define( 'FORWP_TODO_VERSION', '0.3.0' );
+			define( 'FORWP_TODO_VERSION', '1.0.0' );
 		}
 	}
 

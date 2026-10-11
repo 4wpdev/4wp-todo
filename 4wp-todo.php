@@ -3,11 +3,11 @@
  * Plugin Name:       4WP TODO
  * Plugin URI:        https://github.com/4wpdev/4wp-todo
  * Description:       Team tasks and checklists for the 4WP plugin ecosystem — capture notes, assign categories, and track completion across projects.
- * Version:           0.1.0
+ * Version:           1.0.2
  * Requires at least: 6.4
  * Requires PHP:      7.4
- * Tested up to:      7.0
- * Author:            4WP Team
+ * Tested up to:      7.1
+ * Author:            4wp.dev
  * Author URI:        https://4wp.dev
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -18,7 +18,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'FORWP_TODO_VERSION', '0.3.0' );
+define( 'FORWP_TODO_VERSION', '1.0.2' );
 define( 'FORWP_TODO_FILE', __FILE__ );
 define( 'FORWP_TODO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'FORWP_TODO_URL', plugin_dir_url( __FILE__ ) );
